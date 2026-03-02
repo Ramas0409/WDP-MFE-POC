@@ -1,15 +1,121 @@
-/* Global enterprise-app styles */
+/* ── Enterprise Corp — Global Styles ───────────────────────────────────────
+   Brand: Deep Navy (#1B2A4A) + Gold (#C9921A)
+   Pure CSS layout — no Ionic dependency.
+   ──────────────────────────────────────────────────────────────────────── */
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  background: #EEF2F7;
 }
 
-/* Disputes route host container */
-.disputes-host {
-  padding: 16px;
+/* ── App shell (sidebar + page area) ───────────────────────────────────── */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  background: #1B2A4A;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  background: #0F1E38;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-brand {
+  font-size: 16px;
+  font-weight: 700;
+  color: #C9921A;
+  letter-spacing: 0.03em;
+}
+
+.sidebar-sub {
+  font-size: 11px;
+  color: #7A8FAA;
+  margin-top: 4px;
+}
+
+.sidebar-nav {
+  padding: 12px 0;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  color: #C5D0E6;
+  text-decoration: none;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-item:hover {
+  background: rgba(201,146,26,0.08);
+  color: #E8A020;
+}
+
+.nav-item.active {
+  background: rgba(201,146,26,0.14);
+  color: #E8A020;
+  border-left-color: #C9921A;
+  font-weight: 600;
+}
+
+/* ── Page area ──────────────────────────────────────────────────────────── */
+.page-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* ── Page toolbar ───────────────────────────────────────────────────────── */
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 56px;
+  background: #1B2A4A;
+  border-bottom: 2px solid #C9921A;
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+}
+
+/* ── Page content ───────────────────────────────────────────────────────── */
+.page-content {
+  flex: 1;
+  background: #EEF2F7;
+  overflow-y: auto;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #EEF2F7; }
+::-webkit-scrollbar-thumb { background: #B0BDD0; border-radius: 3px; }

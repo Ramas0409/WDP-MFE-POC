@@ -14,32 +14,41 @@ import {
   template: `
     <div class="ion-page">
       <ion-header>
-        <ion-toolbar color="dark">
-          <ion-menu-button slot="start"></ion-menu-button>
-          <ion-title>Enterprise Corp — User Management</ion-title>
+        <ion-toolbar style="--background: #1B2A4A; --color: #ffffff; --border-color: #C9921A;">
+          <ion-menu-button slot="start" style="color: #C9921A;"></ion-menu-button>
+          <ion-title style="font-weight: 600; letter-spacing: 0.03em;">
+            User Management
+          </ion-title>
         </ion-toolbar>
       </ion-header>
 
       <ion-content>
-        <div style="padding: 32px 20px; max-width: 600px; margin: 0 auto; text-align: center;">
-          <div style="font-size: 56px; margin-bottom: 16px;">👥</div>
-          <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #1a1a1a;">
-            User Management
-          </h1>
-          <p style="margin: 0 0 24px; font-size: 14px; font-weight: 600; text-transform: uppercase;
-                     letter-spacing: .06em; color: #333;">
-            Enterprise Corp · Placeholder
-          </p>
-          <div style="background: #f8f9fa; border: 1px dashed #ccc; border-radius: 10px;
-                      padding: 28px 24px;">
-            <p style="margin: 0 0 8px; font-size: 16px; color: #555; line-height: 1.6;">
-              This section will provide user management capabilities for Enterprise Corp —
-              including user creation, role assignment, and access control management.
+        <div style="padding: 40px 24px; max-width: 620px; margin: 0 auto;">
+
+          <div style="background: #fff; border-radius: 10px; border: 1px solid #DDE4EF;
+                      border-top: 4px solid #C9921A; padding: 36px; text-align: center;
+                      box-shadow: 0 2px 12px rgba(27,42,74,.07);">
+            <div style="font-size: 52px; margin-bottom: 16px;">👥</div>
+            <p style="margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+                       letter-spacing: .1em; color: #C9921A;">
+              Enterprise Corp
             </p>
-            <p style="margin: 16px 0 0; font-size: 13px; color: #999;">
-              Feature not yet implemented — placeholder page.
+            <h1 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #1B2A4A;">
+              User Management
+            </h1>
+            <div style="height: 1px; background: #DDE4EF; margin: 0 0 20px;"></div>
+            <p style="margin: 0 0 10px; font-size: 15px; color: #4A6080; line-height: 1.7;">
+              This module will provide enterprise user management — user provisioning,
+              role-based access control, and permission management across the organisation.
+            </p>
+            <p style="margin: 20px 0 0; display: inline-block; font-size: 12px; font-weight: 600;
+                       background: #EEF2F7; color: #7A90B0; padding: 6px 16px;
+                       border-radius: 20px; border: 1px solid #DDE4EF; text-transform: uppercase;
+                       letter-spacing: .06em;">
+              Placeholder — not yet implemented
             </p>
           </div>
+
         </div>
       </ion-content>
     </div>

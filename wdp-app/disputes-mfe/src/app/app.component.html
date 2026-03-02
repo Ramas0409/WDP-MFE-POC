@@ -1,153 +1,349 @@
 <!--
   wdp-disputes custom element — rendered inside the shell via Module Federation.
-  All five appContext fields are displayed explicitly so the integration can be
-  visually verified without opening DevTools.
+  Uses raw ion-* web components (CUSTOM_ELEMENTS_SCHEMA). The host shell
+  provides the Ionic custom element definitions by importing them in its
+  disputes-wrapper component.
 -->
 
 <div style="padding: 16px; background: #fafafa; min-height: 100%;">
 
-  <!-- ── Element header ────────────────────────────────────────────────── -->
-  <div class="card" style="border-left: 4px solid #1565c0;">
-    <h2 style="margin: 0 0 4px; color: #1565c0;">
-      wdp-disputes
-      <span class="badge badge-info" style="margin-left: 8px; vertical-align: middle;">
-        Angular Elements
-      </span>
-    </h2>
-    <p style="margin: 0; color: #666; font-size: 13px;">
-      Micro-frontend loaded via Webpack Module Federation &middot; remoteEntry.js from
-      <code>http://localhost:4201</code>
-    </p>
-  </div>
-
-  <!-- ── Angular version ───────────────────────────────────────────────── -->
-  <div class="card">
-    <p class="section-title">Angular Version (inside this element)</p>
-    <p style="font-size: 22px; font-weight: 700; color: #d50000; margin: 0;" id="wdp-angular-version">
-      v{{ angularVersion }}
-    </p>
-    <p style="margin: 4px 0 0; font-size: 12px; color: #888;">
-      Displayed via <code>import &#x7B; VERSION &#x7D; from '@angular/core'</code>
-    </p>
-  </div>
-
-  <!-- ── appContext values ──────────────────────────────────────────────── -->
-  @if (appContext) {
-    <div class="card">
-      <p class="section-title">appContext — received from shell</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>appName</code></td>
-            <td>
-              <span class="badge badge-info">{{ appContext.appName }}</span>
-            </td>
-          </tr>
-          <tr>
-            <td><code>userId</code></td>
-            <td><code>{{ appContext.userId }}</code></td>
-          </tr>
-          <tr>
-            <td><code>tenantId</code></td>
-            <td><code>{{ appContext.tenantId }}</code></td>
-          </tr>
-          <tr>
-            <td><code>userRoles</code></td>
-            <td>
-              @for (role of appContext.userRoles; track role) {
-                <span class="badge badge-neutral" style="margin-right: 4px;">{{ role }}</span>
-              }
-            </td>
-          </tr>
-          <tr>
-            <td><code>getToken()</code></td>
-            <td>
-              @switch (tokenStatus) {
-                @case ('idle') {
-                  <em style="color: #888;">awaiting context…</em>
-                }
-                @case ('loading') {
-                  <em style="color: #888;">calling getToken()…</em>
-                }
-                @case ('ok') {
-                  <span class="token-ok">
-                    &#x2713; Token received:
-                    <code style="background:#e8f5e9; padding: 2px 6px; border-radius:4px;">
-                      {{ tokenValue }}
-                    </code>
-                  </span>
-                }
-                @case ('error') {
-                  <span class="token-err">&#x2717; Error: {{ tokenError }}</span>
-                }
-              }
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  } @else {
-    <div class="card" style="border-left: 4px solid #e65100;">
-      <p style="margin:0; color:#e65100;">
-        &#x26A0; <code>appContext</code> not yet received — waiting for shell to set the property.
-      </p>
+  <!-- ── Confirmation overlay ──────────────────────────────────────────────── -->
+  @if (confirmationMessage) {
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,.55);
+                display: flex; align-items: center; justify-content: center; z-index: 9999;">
+      <ion-card style="max-width: 360px; width: 90%; margin: 0;">
+        <ion-card-content style="text-align: center; padding-top: 24px;">
+          <div style="font-size: 52px; margin-bottom: 16px;">
+            {{ confirmationMessage === 'Dispute Accepted' ? '✅' : '⚖️' }}
+          </div>
+          <h3 style="margin: 0 0 10px; font-size: 20px; color: #1a1a1a;">
+            {{ confirmationMessage }}
+          </h3>
+          <p style="margin: 0 0 24px; font-size: 14px; color: #666; line-height: 1.6;">
+            You will be returned to the disputes list.
+          </p>
+          <ion-button expand="block" (click)="closeConfirmation()">OK</ion-button>
+        </ion-card-content>
+      </ion-card>
     </div>
   }
 
-  <!-- ── Disputes from mock-api ─────────────────────────────────────────── -->
-  <div class="card">
-    <p class="section-title">Disputes — fetched from mock-api (port 3001)</p>
+  <!-- ── LIST VIEW ─────────────────────────────────────────────────────────── -->
+  @if (!selectedDispute) {
 
-    @switch (disputesStatus) {
-      @case ('idle') {
-        <em style="color: #888;">Waiting for appContext before fetching…</em>
-      }
-      @case ('loading') {
-        <em style="color: #888;">Fetching disputes from http://localhost:3001/disputes…</em>
-      }
-      @case ('error') {
-        <p style="color: #c62828; margin: 0;">
-          &#x2717; Could not load disputes: {{ disputesError }}
-          <br />
-          <small>Make sure mock-api is running: <code>cd mock-api &amp;&amp; npm start</code></small>
-        </p>
-      }
-      @case ('ok') {
-        <p style="margin: 0 0 8px; font-size: 13px; color: #555;">
-          {{ disputes.length }} disputes loaded successfully.
-        </p>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Merchant</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (d of disputes; track d.id) {
-              <tr>
-                <td><code>{{ d.id }}</code></td>
-                <td>{{ d.merchantName }}</td>
-                <td>${{ d.amount | number:'1.2-2' }}</td>
-                <td>
-                  <span [class]="'badge ' + statusBadgeClass(d.status)">
-                    {{ d.status }}
-                  </span>
-                </td>
-              </tr>
+    <!-- Element header + right-side info panel -->
+    <ion-card style="border-left: 4px solid #1565c0;">
+      <ion-card-content style="display: flex; gap: 16px; align-items: flex-start;">
+
+        <!-- Left: title + description — grows to fill available width -->
+        <div style="flex: 1; min-width: 0; align-self: center;">
+          <h2 style="margin: 0 0 4px; color: #1565c0;">
+            wdp-disputes
+            <ion-badge color="primary" style="margin-left: 8px; vertical-align: middle;">Angular Elements</ion-badge>
+          </h2>
+          <p style="margin: 0; color: #666; font-size: 13px;">
+            Micro-frontend loaded via Webpack Module Federation &middot; remoteEntry.js from
+            <code>http://localhost:4201</code>
+          </p>
+        </div>
+
+        <!-- Right panel: version grid + appContext side by side -->
+        <div style="flex-shrink: 0; display: flex; flex-direction: row; gap: 8px; align-items: flex-start;">
+
+          <!-- Version grid: 2 cols (Angular | Ionic) × 2 rows (MFE | Shell) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 180px;">
+
+            <div style="border: 1px solid #ffcdd2; border-radius: 6px; padding: 5px 7px;
+                        background: #fff8f8; text-align: center;">
+              <span style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+                           letter-spacing: .05em; color: #999; margin-bottom: 2px;">MFE · Angular</span>
+              <span style="font-size: 11px; font-weight: 700; color: #d50000;">v{{ angularVersion }}</span>
+            </div>
+
+            <div style="border: 1px solid #b3c9f7; border-radius: 6px; padding: 5px 7px;
+                        background: #f0f4ff; text-align: center;">
+              <span style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+                           letter-spacing: .05em; color: #999; margin-bottom: 2px;">MFE · Ionic</span>
+              <span style="font-size: 11px; font-weight: 700; color: #3880ff;">v{{ ionicVersion }}</span>
+            </div>
+
+            @if (appContext?.shellVersion) {
+              <div style="border: 1px solid #c8e6c9; border-radius: 6px; padding: 5px 7px;
+                          background: #f1f8f1; text-align: center;">
+                <span style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+                             letter-spacing: .05em; color: #999; margin-bottom: 2px;">Shell · Angular</span>
+                <span style="font-size: 11px; font-weight: 700; color: #2e7d32;">{{ appContext!.shellVersion }}</span>
+              </div>
             }
-          </tbody>
-        </table>
-      }
-    }
-  </div>
+
+            @if (appContext?.shellIonicVersion) {
+              <div style="border: 1px solid #d7c9f7; border-radius: 6px; padding: 5px 7px;
+                          background: #f5f0ff; text-align: center;">
+                <span style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+                             letter-spacing: .05em; color: #999; margin-bottom: 2px;">Shell · Ionic</span>
+                <span style="font-size: 11px; font-weight: 700; color: #7c3aed;">v{{ appContext!.shellIonicVersion }}</span>
+              </div>
+            }
+
+          </div>
+
+          <!-- appContext box -->
+          @if (appContext) {
+            <div style="width: 170px; border: 1px solid #c5cae9; border-radius: 6px; padding: 6px 10px; background: #f3f4fb;">
+              <span style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+                           letter-spacing: .05em; color: #999; margin-bottom: 5px;">Data received from Parent Shell</span>
+              <div style="font-size: 11px; line-height: 1.8; color: #333;">
+                <div>
+                  <span style="color: #888;">app</span>
+                  <span style="float: right; font-weight: 600; color: #1565c0;">{{ appContext.appName }}</span>
+                </div>
+                <div>
+                  <span style="color: #888;">user</span>
+                  <span style="float: right;">{{ appContext.userId }}</span>
+                </div>
+                <div>
+                  <span style="color: #888;">OrgId</span>
+                  <span style="float: right;">{{ appContext.tenantId }}</span>
+                </div>
+                <div style="margin-top: 4px; border-top: 1px solid #dde; padding-top: 4px;">
+                  <span style="color: #888;">token</span>
+                  @switch (tokenStatus) {
+                    @case ('loading') { <span style="float: right; color: #888;">…</span> }
+                    @case ('ok') {
+                      <span style="float: right; color: #2e7d32; font-size: 10px; font-family: monospace;">
+                        {{ tokenValue!.slice(0, 14) }}…
+                      </span>
+                    }
+                    @case ('error') {
+                      <span style="float: right; color: #c62828;">&#x2717; err</span>
+                    }
+                    @default { <span style="float: right; color: #ccc;">—</span> }
+                  }
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div style="width: 170px; border: 1px solid #ffe0b2; border-radius: 6px; padding: 6px 10px;
+                        background: #fff8f0; text-align: center;">
+              <span style="font-size: 10px; font-weight: 700; text-transform: uppercase;
+                           letter-spacing: .05em; color: #e65100; display: block; margin-bottom: 2px;">
+                Data received from Parent Shell
+              </span>
+              <span style="font-size: 11px; color: #e65100;">awaiting…</span>
+            </div>
+          }
+
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Disputes table card -->
+    <ion-card>
+      <ion-card-content>
+        <p class="section-title">Disputes — fetched from mock-api (port 3001)</p>
+
+        @switch (disputesStatus) {
+          @case ('idle') {
+            <em style="color: #888;">Waiting for appContext before fetching…</em>
+          }
+          @case ('loading') {
+            <div style="display: flex; align-items: center; gap: 10px; color: #888;">
+              <ion-spinner name="crescent"></ion-spinner>
+              <em>Fetching disputes from http://localhost:3001/disputes…</em>
+            </div>
+          }
+          @case ('error') {
+            <p style="color: #c62828; margin: 0;">
+              &#x2717; Could not load disputes: {{ disputesError }}
+              <br>
+              <small>Make sure mock-api is running: <code>cd mock-api &amp;&amp; npm start</code></small>
+            </p>
+          }
+          @case ('ok') {
+            <p style="margin: 0 0 8px; font-size: 13px; color: #555;">
+              {{ disputes.length }} disputes loaded. Click a row to view details.
+            </p>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Merchant</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th style="width: 32px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of disputes; track d.id) {
+                  <tr (click)="selectDispute(d)"
+                      style="cursor: pointer; background: #f5f9ff;"
+                      onmouseover="this.style.background='#dceeff'; this.style.boxShadow='inset 3px 0 0 #1565c0'"
+                      onmouseout="this.style.background='#f5f9ff'; this.style.boxShadow='none'">
+                    <td><code>{{ d.id }}</code></td>
+                    <td>{{ d.merchantName }}</td>
+                    <td>${{ d.amount | number:'1.2-2' }}</td>
+                    <td>
+                      <ion-badge [color]="statusBadgeColorIonic(d.status)">{{ d.status }}</ion-badge>
+                    </td>
+                    <td style="text-align: center; color: #90caf9; font-size: 14px; font-weight: 700;">›</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        }
+
+      </ion-card-content>
+    </ion-card>
+
+  } <!-- end list view -->
+
+  <!-- ── DETAIL VIEW ───────────────────────────────────────────────────────── -->
+  @if (selectedDispute) {
+
+    <!-- Back bar + action buttons -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+      <ion-button fill="outline" size="small" (click)="goBack()">← BACK</ion-button>
+      <span style="font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #888; flex-shrink: 0;">
+        Dispute Detail
+      </span>
+      <span style="font-size: 14px; font-weight: 700; color: #1565c0; flex-shrink: 0;">
+        {{ selectedDispute.id }}
+      </span>
+
+      <!-- Right: status badge + action buttons -->
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <ion-badge [color]="statusBadgeColorIonic(selectedDispute.status)" style="padding: 4px 10px; font-size: 12px;">
+          {{ selectedDispute.status }}
+        </ion-badge>
+        <ion-button color="success" size="small" (click)="acceptDispute()">ACCEPT</ion-button>
+        <ion-button color="danger" size="small" (click)="contestDispute()">CONTEST</ion-button>
+      </div>
+    </div>
+
+    <!-- 1. Dispute Details -->
+    <ion-card style="border-left: 4px solid #1565c0;">
+      <ion-card-content>
+        <p class="section-title">Dispute Details</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; font-size: 13px;">
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Dispute ID</span>
+            <code style="color: #1565c0; font-weight: 600;">{{ selectedDispute.id }}</code>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Merchant</span>
+            <span style="font-weight: 600;">{{ selectedDispute.merchantName }}</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Disputed Amount</span>
+            <span style="font-weight: 700; color: #c62828; font-size: 15px;">
+              ${{ selectedDispute.amount | number:'1.2-2' }}
+            </span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Date Filed</span>
+            <span>15 Jan 2024</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Reason Code</span>
+            <span>RC-4853 — Cardholder Dispute</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Status</span>
+            <ion-badge [color]="statusBadgeColorIonic(selectedDispute.status)">
+              {{ selectedDispute.status }}
+            </ion-badge>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Description</span>
+            <span style="line-height: 1.6;">
+              Cardholder disputes having authorised this transaction. Customer states they did not make
+              this purchase and requests a chargeback investigation be initiated.
+            </span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- 2. Transaction Details -->
+    <ion-card style="border-left: 4px solid #7b1fa2;">
+      <ion-card-content>
+        <p class="section-title">Transaction Details</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; font-size: 13px;">
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Transaction ID</span>
+            <code>TXN-20240115-8842</code>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Transaction Date</span>
+            <span>15 Jan 2024, 14:32 UTC</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Transaction Amount</span>
+            <span style="font-weight: 700;">${{ selectedDispute.amount | number:'1.2-2' }}</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Card Number</span>
+            <span>**** **** **** 4821</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Card Type</span>
+            <span>Visa Debit</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Transaction Type</span>
+            <span>Card-Not-Present (Online)</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Merchant Category</span>
+            <span>5411 — Grocery Stores / Supermarkets</span>
+          </div>
+          <div>
+            <span style="color: #888; display: block; font-size: 11px; margin-bottom: 3px;">Auth Code</span>
+            <code>AUT-884291</code>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- 3. Dispute Notes -->
+    <ion-card style="border-left: 4px solid #f57c00;">
+      <ion-card-content>
+        <p class="section-title">Dispute Notes</p>
+        <ion-list lines="full" style="--background: transparent;">
+          @for (note of disputeNotes; track note.id) {
+            <ion-item style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;">
+              <ion-label class="ion-text-wrap">
+                <h3 style="font-weight: 700; color: #444;">{{ note.author }}</h3>
+                <p style="font-size: 11px; color: #999;">{{ note.date }}</p>
+                <p style="color: #555; line-height: 1.6;">{{ note.text }}</p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- 4. Documents -->
+    <ion-card style="border-left: 4px solid #00796b;">
+      <ion-card-content>
+        <p class="section-title">Dispute Documents</p>
+        <ion-list lines="full" style="--background: transparent;">
+          @for (doc of disputeDocuments; track doc.name) {
+            <ion-item style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;">
+              <span slot="start" style="font-size: 22px; margin-right: 4px;">📄</span>
+              <ion-label class="ion-text-wrap">
+                <h3 style="color: #1565c0; font-weight: 600;">{{ doc.name }}</h3>
+                <p>{{ doc.size }} · Uploaded {{ doc.date }}</p>
+              </ion-label>
+              <ion-badge slot="end" color="success">{{ doc.type }}</ion-badge>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+  } <!-- end detail view -->
 
 </div>

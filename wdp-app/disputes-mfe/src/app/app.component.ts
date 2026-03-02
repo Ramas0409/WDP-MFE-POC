@@ -12,6 +12,7 @@
  */
 
 import {
+  CUSTOM_ELEMENTS_SCHEMA,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -23,6 +24,9 @@ import {
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
+// webpack provides require() at runtime; declare it so TypeScript is satisfied.
+declare const require: (module: string) => any;
+
 // ── AppContext interface (mirrors the shell's definition) ──────────────────
 
 export interface AppContext {
@@ -31,6 +35,8 @@ export interface AppContext {
   userId: string;
   tenantId: string;
   userRoles: string[];
+  shellVersion?: string;
+  shellIonicVersion?: string;
 }
 
 // ── Dispute model (matches mock-api response) ──────────────────────────────
@@ -42,6 +48,22 @@ interface Dispute {
   status: string;
 }
 
+// ── Detail-page static data models ────────────────────────────────────────
+
+interface DisputeNote {
+  id: number;
+  author: string;
+  date: string;
+  text: string;
+}
+
+interface DisputeDocument {
+  name: string;
+  type: string;
+  size: string;
+  date: string;
+}
+
 // ── Component ──────────────────────────────────────────────────────────────
 
 @Component({
@@ -49,34 +71,13 @@ interface Dispute {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DecimalPipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './app.component.html',
   styles: [`
     :host {
       display: block;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-
-    .card {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 12px 0;
-      background: #fff;
-      box-shadow: 0 1px 4px rgba(0,0,0,.08);
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .badge-info    { background: #e3f2fd; color: #1565c0; }
-    .badge-success { background: #e8f5e9; color: #2e7d32; }
-    .badge-warn    { background: #fff3e0; color: #e65100; }
-    .badge-neutral { background: #f5f5f5; color: #616161; }
 
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; }
@@ -91,8 +92,6 @@ interface Dispute {
       margin: 0 0 8px;
     }
 
-    .token-ok  { color: #2e7d32; font-weight: 600; }
-    .token-err { color: #c62828; font-weight: 600; }
   `]
 })
 export class AppComponent implements OnChanges {
@@ -106,6 +105,9 @@ export class AppComponent implements OnChanges {
   /** Angular version running inside this element */
   readonly angularVersion = VERSION.full;
 
+  /** Ionic version running inside this element (resolved by webpack at build time) */
+  readonly ionicVersion: string = (require('@ionic/angular/package.json') as { version: string }).version;
+
   /** Token resolution result */
   tokenStatus: 'idle' | 'loading' | 'ok' | 'error' = 'idle';
   tokenValue: string | null = null;
@@ -116,17 +118,78 @@ export class AppComponent implements OnChanges {
   disputesStatus: 'idle' | 'loading' | 'ok' | 'error' = 'idle';
   disputesError: string | null = null;
 
+  /** Detail-page navigation state */
+  selectedDispute: Dispute | null = null;
+  confirmationMessage: string | null = null;
+
+  /** Hardcoded notes shown on every dispute detail page */
+  readonly disputeNotes: DisputeNote[] = [
+    {
+      id: 1,
+      author: 'System',
+      date: '15 Jan 2024, 09:00',
+      text: 'Initial chargeback request submitted by cardholder. Case assigned to dispute team for review.'
+    },
+    {
+      id: 2,
+      author: 'J. Williams (Dispute Analyst)',
+      date: '17 Jan 2024, 11:45',
+      text: 'Supporting documentation requested from merchant. Awaiting merchant response within 5 business days.'
+    },
+    {
+      id: 3,
+      author: 'M. Patel (Senior Analyst)',
+      date: '22 Jan 2024, 14:20',
+      text: 'Merchant response received. Transaction log and delivery confirmation provided. Case under active review.'
+    }
+  ];
+
+  /** Hardcoded documents shown on every dispute detail page */
+  readonly disputeDocuments: DisputeDocument[] = [
+    { name: 'Chargeback_Request_Form.pdf',       type: 'PDF', size: '124 KB', date: '15 Jan 2024' },
+    { name: 'Cardholder_Statement_Jan2024.pdf',  type: 'PDF', size: '312 KB', date: '15 Jan 2024' },
+    { name: 'Merchant_Response_Letter.pdf',      type: 'PDF', size: '89 KB',  date: '22 Jan 2024' }
+  ];
+
   private cdr = inject(ChangeDetectorRef);
 
   // ── Template helpers ─────────────────────────────────────────────────────
 
-  statusBadgeClass(status: string): string {
+  statusBadgeColorIonic(status: string): string {
     switch (status) {
-      case 'open':          return 'badge-warn';
-      case 'under-review':  return 'badge-info';
-      case 'resolved':      return 'badge-success';
-      default:              return 'badge-neutral';
+      case 'open':          return 'warning';
+      case 'under-review':  return 'primary';
+      case 'resolved':      return 'success';
+      default:              return 'medium';
     }
+  }
+
+  // ── Detail-page navigation ────────────────────────────────────────────────
+
+  selectDispute(dispute: Dispute): void {
+    this.selectedDispute = dispute;
+    this.cdr.markForCheck();
+  }
+
+  goBack(): void {
+    this.selectedDispute = null;
+    this.cdr.markForCheck();
+  }
+
+  acceptDispute(): void {
+    this.confirmationMessage = 'Dispute Accepted';
+    this.cdr.markForCheck();
+  }
+
+  contestDispute(): void {
+    this.confirmationMessage = 'Dispute Contested';
+    this.cdr.markForCheck();
+  }
+
+  closeConfirmation(): void {
+    this.confirmationMessage = null;
+    this.selectedDispute = null;
+    this.cdr.markForCheck();
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────

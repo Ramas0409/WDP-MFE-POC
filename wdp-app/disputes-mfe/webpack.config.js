@@ -44,15 +44,20 @@ module.exports = (config) => {
         './DisputesElement': './src/bootstrap.ts'
       },
       shared: share({
-        '@angular/core':                     { singleton: true, strictVersion: false, requiredVersion: 'auto' },
-        '@angular/common':                   { singleton: true, strictVersion: false, requiredVersion: 'auto' },
-        '@angular/platform-browser':         { singleton: true, strictVersion: false, requiredVersion: 'auto' },
-        '@angular/platform-browser-dynamic': { singleton: true, strictVersion: false, requiredVersion: 'auto' },
-        '@angular/elements':                 { singleton: true, strictVersion: false, requiredVersion: 'auto' },
-        'rxjs':                              { singleton: true, strictVersion: false, requiredVersion: 'auto' }
+        // ── PoC NOTE (Option B — upgrade to Option A before production) ────────
+        // Angular packages are intentionally NOT shared so this single build can
+        // be consumed by hosts of any Angular version (Angular 18, 20, etc.).
+        // The MFE always bundles and runs its own Angular 20 runtime.
+        //
+        // Option A (production target): create a second webpack config
+        // (webpack.config.shared.js) that DOES share Angular with singleton:true,
+        // serve it on a separate port (e.g. 4204), and point same-version hosts
+        // (wdp-shell Angular 20) at that build. Cross-version hosts (enterprise-app
+        // Angular 18) keep pointing at this build on port 4201.
+        // ────────────────────────────────────────────────────────────────────────
+        'rxjs': { singleton: true, strictVersion: false, requiredVersion: 'auto' }
         // zone.js excluded from shared — loaded via polyfills synchronously,
-        // before MF runtime initialises. Zone.js is idempotent so both shell
-        // and MFE loading it independently is safe.
+        // before MF runtime initialises.
       })
     })
   );

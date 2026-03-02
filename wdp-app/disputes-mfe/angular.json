@@ -31,7 +31,14 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [],
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "node_modules/@ionic/angular/css/core.css",
+              "node_modules/@ionic/angular/css/normalize.css",
+              "node_modules/@ionic/angular/css/structure.css",
+              "node_modules/@ionic/angular/css/typography.css",
+              "node_modules/@ionic/angular/css/display.css",
+              "src/styles.scss"
+            ],
             "scripts": []
           },
           "configurations": {

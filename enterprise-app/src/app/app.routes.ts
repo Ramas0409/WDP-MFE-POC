@@ -19,14 +19,9 @@ export const routes: Routes = [
       )
   },
   {
-    path: 'users',
+    path: 'transactions',
     loadComponent: () =>
-      import('./users/users.component').then((m) => m.UsersComponent)
-  },
-  {
-    path: 'org',
-    loadComponent: () =>
-      import('./org/org.component').then((m) => m.OrgComponent)
+      import('./transactions/transactions.component').then((m) => m.TransactionsComponent)
   },
   {
     path: '**',

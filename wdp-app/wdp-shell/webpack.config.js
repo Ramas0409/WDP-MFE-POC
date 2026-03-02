@@ -23,15 +23,23 @@ module.exports = (config) => {
       },
 
       shared: share({
+        // ── PoC NOTE (Option B — upgrade to Option A before production) ────────
+        // disputes-mfe currently bundles its own Angular (does not offer Angular
+        // into the shared scope). These entries below are used solely by wdp-shell
+        // itself and have no effect on the MFE's runtime.
+        //
+        // Option A (production target): disputes-mfe will have a second build
+        // (webpack.config.shared.js, port 4204) that DOES offer Angular 20 into
+        // the shared scope. At that point wdp-shell should point at port 4204 so
+        // the two Angular 20 runtimes can be de-duplicated here.
+        // ────────────────────────────────────────────────────────────────────────
         '@angular/core':                     { singleton: true, strictVersion: false, requiredVersion: 'auto' },
         '@angular/common':                   { singleton: true, strictVersion: false, requiredVersion: 'auto' },
         '@angular/router':                   { singleton: true, strictVersion: false, requiredVersion: 'auto' },
         '@angular/platform-browser':         { singleton: true, strictVersion: false, requiredVersion: 'auto' },
         '@angular/platform-browser-dynamic': { singleton: true, strictVersion: false, requiredVersion: 'auto' },
         'rxjs':                              { singleton: true, strictVersion: false, requiredVersion: 'auto' }
-        // zone.js is intentionally excluded from shared — it is loaded via the
-        // polyfills bundle (synchronously, before MF runtime initialises) and
-        // sharing it through the async MF scope causes "eager consumption" errors.
+        // zone.js excluded from shared — loaded via polyfills synchronously.
       })
     })
   );

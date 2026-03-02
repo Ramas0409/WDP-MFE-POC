@@ -19,10 +19,22 @@ import {
   inject
 } from '@angular/core';
 import { loadRemoteModule } from '@angular-architects/module-federation';
+
+// webpack provides require() at runtime; declare it so TypeScript is satisfied.
+declare const require: (module: string) => any;
 import {
+  IonBadge,
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonChip,
   IonContent,
   IonHeader,
+  IonItem,
+  IonLabel,
+  IonList,
   IonMenuButton,
+  IonSpinner,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
@@ -35,6 +47,8 @@ interface AppContext {
   userId: string;
   tenantId: string;
   userRoles: string[];
+  shellVersion: string;
+  shellIonicVersion: string;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -43,7 +57,12 @@ interface AppContext {
   selector: 'app-disputes-wrapper',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IonHeader, IonToolbar, IonTitle, IonMenuButton, IonContent],
+  imports: [
+    IonHeader, IonToolbar, IonTitle, IonMenuButton, IonContent,
+    // Registers Ionic custom elements used by the disputes-mfe web component
+    IonButton, IonBadge, IonCard, IonCardContent, IonChip,
+    IonSpinner, IonList, IonItem, IonLabel
+  ],
   template: `
     <div class="ion-page">
       <ion-header>
@@ -97,7 +116,9 @@ export class DisputesWrapperComponent implements AfterViewInit {
     }),
     userId: 'user-001',
     tenantId: 'tenant-001',
-    userRoles: ['dispute-viewer', 'dispute-responder']
+    userRoles: ['dispute-viewer', 'dispute-responder'],
+    shellVersion: 'Angular 20',
+    shellIonicVersion: (require('@ionic/angular/package.json') as { version: string }).version
   };
 
   // ── Lifecycle ───────────────────────────────────────────────────────────

@@ -1,0 +1,286 @@
+/* ── Enterprise React App — Layout & Sidebar ──────────────────────────────
+   Theme: GitHub Dark (#0d1117) + Emerald (#10b981) + React Blue (#61dafb)
+   Distinct from WDP Shell (Ionic blue) and Enterprise Corp Angular (navy+gold).
+   ──────────────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #f0f4f8;
+}
+
+/* ── App shell layout ──────────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  height: 100vh;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  background: #0d1117;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid #21262d;
+}
+
+.sidebar-header {
+  padding: 18px 16px;
+  background: #090d13;
+  border-bottom: 1px solid #21262d;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-logo {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.sidebar-brand-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #10b981;
+  letter-spacing: 0.02em;
+}
+
+.sidebar-brand-sub {
+  font-size: 10px;
+  color: #484f58;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 10px 0;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: #8b949e;
+  text-decoration: none;
+  font-size: 14px;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-link:hover {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.nav-link.active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-left-color: #10b981;
+  font-weight: 600;
+}
+
+.nav-icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #21262d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.react-badge {
+  font-size: 12px;
+  color: #61dafb;
+  font-weight: 600;
+}
+
+.mf-badge {
+  font-size: 11px;
+  color: #484f58;
+}
+
+/* ── Main content area ─────────────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f0f4f8;
+}
+
+/* ── Page header ───────────────────────────────────────────────────────── */
+.page-header {
+  background: #0d1117;
+  padding: 22px 28px;
+  border-bottom: 2px solid #10b981;
+}
+
+.page-header-eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #10b981;
+}
+
+.page-header-title {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.page-header-desc {
+  margin: 0;
+  font-size: 14px;
+  color: #8b949e;
+  line-height: 1.7;
+  max-width: 580px;
+}
+
+/* ── Info bar ──────────────────────────────────────────────────────────── */
+.info-bar {
+  background: #090d13;
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #21262d;
+}
+
+.info-bar-item {
+  font-size: 12px;
+  color: #8b949e;
+}
+
+.info-bar-sep {
+  color: #21262d;
+}
+
+/* ── Section cards ─────────────────────────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  padding: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid #10b981;
+  text-decoration: none;
+  display: block;
+  transition: box-shadow 0.15s, transform 0.15s;
+  color: inherit;
+}
+
+.card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.card-desc {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.card-link {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #10b981;
+}
+
+/* ── Placeholder page ──────────────────────────────────────────────────── */
+.placeholder-wrap {
+  padding: 40px 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.placeholder-card {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-top: 4px solid #10b981;
+  padding: 36px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.placeholder-icon {
+  font-size: 52px;
+  margin-bottom: 16px;
+}
+
+.placeholder-eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #10b981;
+}
+
+.placeholder-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.placeholder-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0 0 20px;
+}
+
+.placeholder-desc {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #4a5568;
+  line-height: 1.7;
+}
+
+.placeholder-tag {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f0f4f8;
+  color: #94a3b8;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
