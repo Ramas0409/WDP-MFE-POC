@@ -72,7 +72,7 @@ const ORG_IDS = ['org-001', 'org-002', 'org-003'];
       <ion-header>
         <ion-toolbar color="primary">
           <ion-menu-button slot="start"></ion-menu-button>
-          <ion-title>WDP Shell — Micro-Frontend PoC (Angular 20)</ion-title>
+          <ion-title>WDP Shell — Micro-Frontend PoC (Angular 19)</ion-title>
           <ion-buttons slot="end" style="padding-right: 12px;">
             <span style="font-size: 12px; color: rgba(255,255,255,0.85);
                          display: flex; align-items: center; gap: 5px;">
@@ -178,7 +178,7 @@ export class DisputesWrapperComponent implements OnInit, AfterViewInit, OnDestro
     userId:   this.userId,
     tenantId: ORG_IDS[0],
     userRoles: ['dispute-viewer', 'dispute-responder'],
-    shellVersion: 'Angular 20',
+    shellVersion: 'Angular 19',
     shellIonicVersion: (require('@ionic/angular/package.json') as { version: string }).version
   };
 

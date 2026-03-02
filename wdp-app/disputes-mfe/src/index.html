@@ -19,20 +19,19 @@
 
     <script>
       // Set a mock appContext for standalone development.
-      window.addEventListener('DOMContentLoaded', () => {
-        // Give Angular Elements a tick to register the custom element.
-        setTimeout(() => {
-          const el = document.getElementById('standalone-el');
-          if (el) {
-            el.appContext = {
-              appName: 'standalone-dev',
-              getToken: () => Promise.resolve('dev-token-standalone'),
-              userId: 'dev-user',
-              tenantId: 'dev-tenant',
-              userRoles: ['dispute-viewer']
-            };
-          }
-        }, 500);
+      // Wait for the custom element class to be registered (resolves after bootstrap.ts
+      // calls customElements.define), then immediately assign the context.
+      customElements.whenDefined('wdp-disputes').then(() => {
+        const el = document.getElementById('standalone-el');
+        if (el) {
+          el.appContext = {
+            appName: 'standalone-dev',
+            getToken: () => Promise.resolve('dev-token-standalone'),
+            userId: 'dev-user',
+            tenantId: 'dev-tenant',
+            userRoles: ['dispute-viewer']
+          };
+        }
       });
     </script>
   </body>

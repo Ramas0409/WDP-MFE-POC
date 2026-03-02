@@ -74,6 +74,10 @@ export const elementReady: Promise<void> = (async () => {
     if (!customElements.get('wdp-disputes')) {
       customElements.define('wdp-disputes', DisputesElement);
       console.log('[disputes-mfe] Custom element "wdp-disputes" registered.');
+      // Yield one microtask to allow connectedCallback to attach the view,
+      // then force an initial change-detection pass so the element renders.
+      await Promise.resolve();
+      app.tick();
     } else {
       console.warn('[disputes-mfe] "wdp-disputes" already defined — skipping.');
     }
