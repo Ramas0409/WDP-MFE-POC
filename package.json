@@ -4,11 +4,12 @@
   "private": true,
   "description": "Micro-frontend PoC: Angular 20 shell + disputes-mfe via Webpack Module Federation",
   "scripts": {
-    "install:all": "npm install --prefix mock-api && npm install --prefix disputes-mfe --legacy-peer-deps && npm install --prefix shell --legacy-peer-deps",
-    "start:api": "npm start --prefix mock-api",
-    "start:mfe": "npm start --prefix disputes-mfe",
-    "start:shell": "npm start --prefix shell",
-    "start:all": "concurrently \"npm run start:api\" \"npm run start:mfe\" \"npm run start:shell\""
+    "install:all": "npm install --prefix wdp-app/mock-api && npm install --prefix wdp-app/disputes-mfe --legacy-peer-deps && npm install --prefix wdp-app/wdp-shell --legacy-peer-deps && npm install --prefix enterprise-app --legacy-peer-deps",
+    "start:api":        "npm start --prefix wdp-app/mock-api",
+    "start:mfe":        "npm start --prefix wdp-app/disputes-mfe",
+    "start:shell":      "npm start --prefix wdp-app/wdp-shell",
+    "start:enterprise": "npm start --prefix enterprise-app",
+    "start:all": "concurrently \"npm run start:api\" \"npm run start:mfe\" \"npm run start:shell\" \"npm run start:enterprise\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

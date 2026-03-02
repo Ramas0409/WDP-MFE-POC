@@ -1,9 +1,9 @@
 {
-  "name": "shell",
+  "name": "enterprise-app",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "ng serve --port 4200",
+    "start": "ng serve --port 4202",
     "build": "ng build",
     "watch": "ng build --watch --configuration development"
   },
@@ -19,7 +19,6 @@
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "wdp-webpack-poc": "file:..",
     "zone.js": "^0.15.0"
   },
   "devDependencies": {
