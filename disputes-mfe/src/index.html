@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Disputes MFE — Standalone Dev Server</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <!--
+      When running standalone (npm start inside disputes-mfe/), main.ts imports
+      bootstrap.ts which registers 'wdp-disputes'.  We then mount it here with
+      a hard-coded appContext so we can develop the element in isolation.
+    -->
+    <wdp-disputes id="standalone-el"></wdp-disputes>
+
+    <script>
+      // Set a mock appContext for standalone development.
+      window.addEventListener('DOMContentLoaded', () => {
+        // Give Angular Elements a tick to register the custom element.
+        setTimeout(() => {
+          const el = document.getElementById('standalone-el');
+          if (el) {
+            el.appContext = {
+              appName: 'standalone-dev',
+              getToken: () => Promise.resolve('dev-token-standalone'),
+              userId: 'dev-user',
+              tenantId: 'dev-tenant',
+              userRoles: ['dispute-viewer']
+            };
+          }
+        }, 500);
+      });
+    </script>
+  </body>
+</html>

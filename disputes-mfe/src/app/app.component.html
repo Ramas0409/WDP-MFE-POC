@@ -1,0 +1,153 @@
+<!--
+  wdp-disputes custom element — rendered inside the shell via Module Federation.
+  All five appContext fields are displayed explicitly so the integration can be
+  visually verified without opening DevTools.
+-->
+
+<div style="padding: 16px; background: #fafafa; min-height: 100%;">
+
+  <!-- ── Element header ────────────────────────────────────────────────── -->
+  <div class="card" style="border-left: 4px solid #1565c0;">
+    <h2 style="margin: 0 0 4px; color: #1565c0;">
+      wdp-disputes
+      <span class="badge badge-info" style="margin-left: 8px; vertical-align: middle;">
+        Angular Elements
+      </span>
+    </h2>
+    <p style="margin: 0; color: #666; font-size: 13px;">
+      Micro-frontend loaded via Webpack Module Federation &middot; remoteEntry.js from
+      <code>http://localhost:4201</code>
+    </p>
+  </div>
+
+  <!-- ── Angular version ───────────────────────────────────────────────── -->
+  <div class="card">
+    <p class="section-title">Angular Version (inside this element)</p>
+    <p style="font-size: 22px; font-weight: 700; color: #d50000; margin: 0;" id="wdp-angular-version">
+      v{{ angularVersion }}
+    </p>
+    <p style="margin: 4px 0 0; font-size: 12px; color: #888;">
+      Displayed via <code>import &#x7B; VERSION &#x7D; from '@angular/core'</code>
+    </p>
+  </div>
+
+  <!-- ── appContext values ──────────────────────────────────────────────── -->
+  @if (appContext) {
+    <div class="card">
+      <p class="section-title">appContext — received from shell</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>appName</code></td>
+            <td>
+              <span class="badge badge-info">{{ appContext.appName }}</span>
+            </td>
+          </tr>
+          <tr>
+            <td><code>userId</code></td>
+            <td><code>{{ appContext.userId }}</code></td>
+          </tr>
+          <tr>
+            <td><code>tenantId</code></td>
+            <td><code>{{ appContext.tenantId }}</code></td>
+          </tr>
+          <tr>
+            <td><code>userRoles</code></td>
+            <td>
+              @for (role of appContext.userRoles; track role) {
+                <span class="badge badge-neutral" style="margin-right: 4px;">{{ role }}</span>
+              }
+            </td>
+          </tr>
+          <tr>
+            <td><code>getToken()</code></td>
+            <td>
+              @switch (tokenStatus) {
+                @case ('idle') {
+                  <em style="color: #888;">awaiting context…</em>
+                }
+                @case ('loading') {
+                  <em style="color: #888;">calling getToken()…</em>
+                }
+                @case ('ok') {
+                  <span class="token-ok">
+                    &#x2713; Token received:
+                    <code style="background:#e8f5e9; padding: 2px 6px; border-radius:4px;">
+                      {{ tokenValue }}
+                    </code>
+                  </span>
+                }
+                @case ('error') {
+                  <span class="token-err">&#x2717; Error: {{ tokenError }}</span>
+                }
+              }
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="card" style="border-left: 4px solid #e65100;">
+      <p style="margin:0; color:#e65100;">
+        &#x26A0; <code>appContext</code> not yet received — waiting for shell to set the property.
+      </p>
+    </div>
+  }
+
+  <!-- ── Disputes from mock-api ─────────────────────────────────────────── -->
+  <div class="card">
+    <p class="section-title">Disputes — fetched from mock-api (port 3001)</p>
+
+    @switch (disputesStatus) {
+      @case ('idle') {
+        <em style="color: #888;">Waiting for appContext before fetching…</em>
+      }
+      @case ('loading') {
+        <em style="color: #888;">Fetching disputes from http://localhost:3001/disputes…</em>
+      }
+      @case ('error') {
+        <p style="color: #c62828; margin: 0;">
+          &#x2717; Could not load disputes: {{ disputesError }}
+          <br />
+          <small>Make sure mock-api is running: <code>cd mock-api &amp;&amp; npm start</code></small>
+        </p>
+      }
+      @case ('ok') {
+        <p style="margin: 0 0 8px; font-size: 13px; color: #555;">
+          {{ disputes.length }} disputes loaded successfully.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Merchant</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of disputes; track d.id) {
+              <tr>
+                <td><code>{{ d.id }}</code></td>
+                <td>{{ d.merchantName }}</td>
+                <td>${{ d.amount | number:'1.2-2' }}</td>
+                <td>
+                  <span [class]="'badge ' + statusBadgeClass(d.status)">
+                    {{ d.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+  </div>
+
+</div>

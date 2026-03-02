@@ -1,0 +1,27 @@
+<ion-app>
+
+  <!-- Side menu -->
+  <ion-menu contentId="main-content">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>WDP Shell</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item
+            routerLink="/disputes"
+            routerLinkActive="selected"
+            lines="none">
+            <ion-label>Disputes MFE</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <!-- Each routed page owns its own ion-header + ion-content -->
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+
+</ion-app>

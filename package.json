@@ -1,0 +1,16 @@
+{
+  "name": "wdp-webpack-poc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Micro-frontend PoC: Angular 20 shell + disputes-mfe via Webpack Module Federation",
+  "scripts": {
+    "install:all": "npm install --prefix mock-api && npm install --prefix disputes-mfe --legacy-peer-deps && npm install --prefix shell --legacy-peer-deps",
+    "start:api": "npm start --prefix mock-api",
+    "start:mfe": "npm start --prefix disputes-mfe",
+    "start:shell": "npm start --prefix shell",
+    "start:all": "concurrently \"npm run start:api\" \"npm run start:mfe\" \"npm run start:shell\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

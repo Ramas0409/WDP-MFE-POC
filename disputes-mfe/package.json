@@ -1,0 +1,30 @@
+{
+  "name": "disputes-mfe",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "ng serve --port 4201",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development"
+  },
+  "dependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/compiler": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/elements": "^20.0.0",
+    "@angular/platform-browser": "^20.0.0",
+    "@angular/platform-browser-dynamic": "^20.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "wdp-webpack-poc": "file:..",
+    "zone.js": "^0.15.0"
+  },
+  "devDependencies": {
+    "@angular-architects/module-federation": "^18.0.0",
+    "@angular-builders/custom-webpack": "^18.0.0",
+    "@angular-devkit/build-angular": "^20.0.0",
+    "@angular/cli": "^20.0.0",
+    "@angular/compiler-cli": "^20.0.0",
+    "typescript": "~5.8.0"
+  }
+}
