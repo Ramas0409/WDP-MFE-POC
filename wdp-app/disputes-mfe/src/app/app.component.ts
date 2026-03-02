@@ -164,6 +164,12 @@ export class AppComponent implements OnChanges {
     }
   }
 
+  // ── Token update (called by "Update Token" button in the template) ───────
+
+  updateToken(): void {
+    this.resolveToken();
+  }
+
   // ── Detail-page navigation ────────────────────────────────────────────────
 
   selectDispute(dispute: Dispute): void {
@@ -196,11 +202,17 @@ export class AppComponent implements OnChanges {
 
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['appContext'] && this.appContext) {
-      // Run both async operations in parallel once context arrives.
-      await Promise.all([
-        this.resolveToken(),
-        this.fetchDisputes()
-      ]);
+      const isFirstLoad = changes['appContext'].previousValue == null;
+      if (isFirstLoad) {
+        // First time context arrives: fetch disputes and resolve token.
+        await Promise.all([this.resolveToken(), this.fetchDisputes()]);
+      } else {
+        // Subsequent updates (e.g. org switch): re-resolve token for the new
+        // context but keep the disputes list — the data doesn't change per org
+        // in this PoC and we don't want a loading flicker on every selection.
+        await this.resolveToken();
+        this.cdr.markForCheck();
+      }
     }
   }
 
