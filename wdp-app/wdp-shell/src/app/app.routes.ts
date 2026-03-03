@@ -29,6 +29,11 @@ export const routes: Routes = [
       import('./org/org.component').then((m) => m.OrgComponent)
   },
   {
+    path: 'queues',
+    loadComponent: () =>
+      import('./queues/queues.component').then((m) => m.QueuesComponent)
+  },
+  {
     path: '**',
     redirectTo: 'home'
   }
