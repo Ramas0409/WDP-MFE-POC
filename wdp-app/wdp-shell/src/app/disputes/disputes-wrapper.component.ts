@@ -20,6 +20,8 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { loadRemoteModule } from '@angular-architects/module-federation';
 import {
   IonBadge,
@@ -53,6 +55,12 @@ interface AppContext {
   userRoles: string[];
   shellVersion: string;
   shellIonicVersion: string;
+  /** Set when navigating here from Queues — tells the MFE to auto-open this case. */
+  selectedCaseId?: string;
+  /** Breadcrumb shown in the MFE back button when navigated from Queues. */
+  breadcrumb?: { label: string; route: string };
+  /** Called by the MFE back button when a breadcrumb route is present. */
+  navigateBack?: () => void;
 }
 
 const ORG_IDS = ['org-001', 'org-002', 'org-003'];
@@ -165,12 +173,15 @@ export class DisputesWrapperComponent implements OnInit, AfterViewInit, OnDestro
   /** True when < 60 s remain — turns the countdown red. */
   countdownUrgent = false;
 
-  private cdr       = inject(ChangeDetectorRef);
-  private ngZone    = inject(NgZone);
+  private cdr         = inject(ChangeDetectorRef);
+  private ngZone      = inject(NgZone);
   private authService = inject(AuthService);
+  private route       = inject(ActivatedRoute);
+  private router      = inject(Router);
 
   private mfeEl: (HTMLElement & { appContext: AppContext }) | null = null;
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private paramsSub: Subscription | null = null;
 
   private appContext: AppContext = {
     appName: 'enterprise-app-a',
@@ -191,10 +202,35 @@ export class DisputesWrapperComponent implements OnInit, AfterViewInit, OnDestro
       this.refreshTokenDisplay();
       this.cdr.markForCheck();
     }, 1000);
+
+    // Subscribe to query params — works on fresh load AND on Ionic component reuse
+    // (IonicRouteStrategy keeps the component alive; snapshot would be stale on reuse).
+    this.paramsSub = this.route.queryParams.subscribe(params => {
+      if (params['caseId']) {
+        const caseId      = params['caseId']      as string;
+        const returnLabel = (params['returnLabel'] as string) || '← Back';
+        const returnRoute = (params['returnRoute'] as string) || '/queues';
+        this.appContext = {
+          ...this.appContext,
+          selectedCaseId: caseId,
+          breadcrumb:     { label: returnLabel, route: returnRoute },
+          navigateBack:   () => this.router.navigate([returnRoute])
+        };
+      } else {
+        // Normal disputes navigation (not from Queues) — clear any deep-link state.
+        const { selectedCaseId: _a, breadcrumb: _b, navigateBack: _c, ...rest } = this.appContext as any;
+        this.appContext = rest as AppContext;
+      }
+      // Push updated context to the MFE if it is already mounted (component reuse case).
+      if (this.mfeEl) {
+        this.mfeEl.appContext = this.appContext;
+      }
+    });
   }
 
   ngOnDestroy(): void {
     if (this.countdownTimer !== null) clearInterval(this.countdownTimer);
+    this.paramsSub?.unsubscribe();
   }
 
   async ngAfterViewInit(): Promise<void> {

@@ -37,6 +37,12 @@ export interface AppContext {
   userRoles: string[];
   shellVersion?: string;
   shellIonicVersion?: string;
+  /** When set, the MFE auto-opens this case on first load. */
+  selectedCaseId?: string;
+  /** When set, the MFE back button shows this label and calls navigateBack. */
+  breadcrumb?: { label: string; route: string };
+  /** Called by the MFE back button to return to the originating shell route. */
+  navigateBack?: () => void;
 }
 
 // ── Dispute model (matches mock-api response) ──────────────────────────────
@@ -182,6 +188,16 @@ export class AppComponent implements OnChanges {
     this.cdr.markForCheck();
   }
 
+  /** Back button handler: uses shell's navigateBack callback when available (deep-link from Queues),
+   *  otherwise returns to the disputes list within the MFE. */
+  handleBack(): void {
+    if (this.appContext?.navigateBack) {
+      this.appContext.navigateBack();
+    } else {
+      this.goBack();
+    }
+  }
+
   acceptDispute(): void {
     this.confirmationMessage = 'Dispute Accepted';
     this.cdr.markForCheck();
@@ -194,8 +210,7 @@ export class AppComponent implements OnChanges {
 
   closeConfirmation(): void {
     this.confirmationMessage = null;
-    this.selectedDispute = null;
-    this.cdr.markForCheck();
+    this.handleBack();
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -206,14 +221,31 @@ export class AppComponent implements OnChanges {
       if (isFirstLoad) {
         // First time context arrives: fetch disputes and resolve token.
         await Promise.all([this.resolveToken(), this.fetchDisputes()]);
+        // Auto-open the case if the shell navigated here from Queues.
+        this.autoSelectCase();
       } else {
-        // Subsequent updates (e.g. org switch): re-resolve token for the new
-        // context but keep the disputes list — the data doesn't change per org
-        // in this PoC and we don't want a loading flicker on every selection.
+        // Subsequent updates (e.g. org switch, or component reuse with a new caseId):
+        // re-resolve token and auto-select if a caseId is now present.
         await this.resolveToken();
+        this.autoSelectCase();
         this.cdr.markForCheck();
       }
     }
+  }
+
+  /** If appContext.selectedCaseId is set, immediately open that dispute's detail view. */
+  private autoSelectCase(): void {
+    const caseId = this.appContext?.selectedCaseId;
+    if (!caseId) {
+      // No deep-link — ensure we show the list (handles navigating from Queues to plain /disputes).
+      if (this.selectedDispute !== null) {
+        this.selectedDispute = null;
+        this.cdr.markForCheck();
+      }
+      return;
+    }
+    const match = this.disputes.find(d => d.id === caseId);
+    if (match) this.selectDispute(match);
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────

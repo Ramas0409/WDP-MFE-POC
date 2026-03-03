@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -27,20 +28,6 @@ interface QueueDef {
   description: string;
   color: string;
   filter: (d: Dispute) => boolean;
-}
-
-interface CaseNote {
-  id: number;
-  author: string;
-  date: string;
-  text: string;
-}
-
-interface CaseDocument {
-  name: string;
-  type: string;
-  size: string;
-  date: string;
 }
 
 // ── Predefined queues ─────────────────────────────────────────────────────────
@@ -95,35 +82,6 @@ const QUEUES: QueueDef[] = [
     color: '#0369a1',
     filter: (d) => d.category === 'Subscription'
   }
-];
-
-// ── Static detail-page data (same as disputes-mfe) ────────────────────────────
-
-const NOTES: CaseNote[] = [
-  {
-    id: 1,
-    author: 'System',
-    date: '15 Jan 2024, 09:00',
-    text: 'Initial chargeback request submitted by cardholder. Case assigned to dispute team for review.'
-  },
-  {
-    id: 2,
-    author: 'J. Williams (Dispute Analyst)',
-    date: '17 Jan 2024, 11:45',
-    text: 'Supporting documentation requested from merchant. Awaiting merchant response within 5 business days.'
-  },
-  {
-    id: 3,
-    author: 'M. Patel (Senior Analyst)',
-    date: '22 Jan 2024, 14:20',
-    text: 'Merchant response received. Transaction log and delivery confirmation provided. Case under active review.'
-  }
-];
-
-const DOCS: CaseDocument[] = [
-  { name: 'Chargeback_Request_Form.pdf',      type: 'PDF', size: '124 KB', date: '15 Jan 2024' },
-  { name: 'Cardholder_Statement_Jan2024.pdf', type: 'PDF', size: '312 KB', date: '15 Jan 2024' },
-  { name: 'Merchant_Response_Letter.pdf',     type: 'PDF', size: '89 KB',  date: '22 Jan 2024' }
 ];
 
 // ── Shared table-header style ─────────────────────────────────────────────────
@@ -197,17 +155,17 @@ const TH_R = TH + 'text-align:right;';
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════
-               RIGHT PANEL — Case list  |  Case detail
+               RIGHT PANEL — Case list
                ═══════════════════════════════════════════════════════════ -->
           <div style="flex: 1; overflow-y: auto; background: #f0f4f8;">
 
-            <!-- Loading ───────────────────────────────────────────────── -->
+            <!-- Loading -->
             @if (loading()) {
               <p style="text-align: center; color: #9ca3af; padding: 80px 0; font-size: 15px;">
                 Loading disputes from mock-api...
               </p>
 
-            <!-- API error ─────────────────────────────────────────────── -->
+            <!-- API error -->
             } @else if (error()) {
               <div style="margin: 24px; background: #fef2f2; border-left: 4px solid #dc2626;
                           border-radius: 8px; padding: 16px 20px;">
@@ -221,200 +179,7 @@ const TH_R = TH + 'text-align:right;';
                 </p>
               </div>
 
-            <!-- ── DETAIL VIEW ─────────────────────────────────────────── -->
-            } @else if (selectedCase()) {
-              <div style="padding: 24px; max-width: 860px;">
-
-                <!-- Back button -->
-                <button (click)="goBack()"
-                        style="display: inline-flex; align-items: center; gap: 6px; background: none;
-                               border: none; cursor: pointer; color: #3880ff; font-size: 13px;
-                               font-weight: 600; padding: 0; margin-bottom: 20px;">
-                  &#8592; Back to {{ selectedQueue().label }}
-                </button>
-
-                <!-- Case header card -->
-                <div style="background: #fff; border-radius: 10px; padding: 20px 24px;
-                            box-shadow: 0 1px 4px rgba(0,0,0,.07); margin-bottom: 14px;">
-
-                  <div style="display: flex; align-items: flex-start; justify-content: space-between;
-                              flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
-                    <div>
-                      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700;
-                                 text-transform: uppercase; letter-spacing: .1em; color: #9ca3af;">
-                        Case ID
-                      </p>
-                      <code style="font-size: 17px; font-weight: 700; color: #3880ff;
-                                   background: #eff6ff; padding: 4px 12px; border-radius: 6px;">
-                        {{ selectedCase()!.id }}
-                      </code>
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                      <span style="font-size: 12px; font-weight: 700; padding: 5px 13px; border-radius: 20px;"
-                            [style.background]="statusBg(selectedCase()!.status)"
-                            [style.color]="statusColor(selectedCase()!.status)">
-                        {{ statusLabel(selectedCase()!.status) }}
-                      </span>
-                      <span style="font-size: 12px; font-weight: 700; padding: 5px 13px; border-radius: 20px;"
-                            [style.background]="priorityBg(selectedCase()!.priority)"
-                            [style.color]="priorityColor(selectedCase()!.priority)">
-                        {{ (selectedCase()!.priority ?? 'medium') }} priority
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Info grid -->
-                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-                              gap: 16px;">
-                    <div>
-                      <p style="margin: 0 0 3px; font-size: 11px; font-weight: 600;
-                                 text-transform: uppercase; letter-spacing: .06em; color: #9ca3af;">
-                        Merchant
-                      </p>
-                      <p style="margin: 0; font-size: 14px; font-weight: 600; color: #0d1b2a;">
-                        {{ selectedCase()!.merchantName }}
-                      </p>
-                    </div>
-                    <div>
-                      <p style="margin: 0 0 3px; font-size: 11px; font-weight: 600;
-                                 text-transform: uppercase; letter-spacing: .06em; color: #9ca3af;">
-                        Amount at Dispute
-                      </p>
-                      <p style="margin: 0; font-size: 20px; font-weight: 700; color: #0d1b2a;">
-                        {{ fmtAmt(selectedCase()!.amount) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p style="margin: 0 0 3px; font-size: 11px; font-weight: 600;
-                                 text-transform: uppercase; letter-spacing: .06em; color: #9ca3af;">
-                        Category
-                      </p>
-                      <p style="margin: 0; font-size: 14px; color: #374151;">
-                        {{ selectedCase()!.category ?? 'Unknown' }}
-                      </p>
-                    </div>
-                    <div>
-                      <p style="margin: 0 0 3px; font-size: 11px; font-weight: 600;
-                                 text-transform: uppercase; letter-spacing: .06em; color: #9ca3af;">
-                        Organisation
-                      </p>
-                      <p style="margin: 0; font-size: 14px; color: #374151;">
-                        {{ selectedCase()!.orgId ?? '&#8212;' }}
-                      </p>
-                    </div>
-                    <div>
-                      <p style="margin: 0 0 3px; font-size: 11px; font-weight: 600;
-                                 text-transform: uppercase; letter-spacing: .06em; color: #9ca3af;">
-                        Date Filed
-                      </p>
-                      <p style="margin: 0; font-size: 14px; color: #374151;">
-                        {{ selectedCase()!.date ?? '&#8212;' }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Action buttons / confirmation -->
-                @if (!confirmationMessage()) {
-                  <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-                    <button (click)="acceptCase()"
-                            style="padding: 10px 24px; background: #16a34a; color: #fff;
-                                   border: none; border-radius: 8px; font-size: 14px;
-                                   font-weight: 700; cursor: pointer;">
-                      Accept Case
-                    </button>
-                    <button (click)="contestCase()"
-                            style="padding: 10px 24px; background: #dc2626; color: #fff;
-                                   border: none; border-radius: 8px; font-size: 14px;
-                                   font-weight: 700; cursor: pointer;">
-                      Contest Case
-                    </button>
-                  </div>
-                } @else {
-                  <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;
-                              padding: 14px 20px; margin-bottom: 16px; display: flex;
-                              align-items: center; justify-content: space-between; gap: 12px;">
-                    <div>
-                      <p style="margin: 0 0 2px; font-weight: 700; font-size: 14px; color: #15803d;">
-                        Action Recorded
-                      </p>
-                      <p style="margin: 0; font-size: 13px; color: #166534;">
-                        {{ confirmationMessage() }}
-                      </p>
-                    </div>
-                    <button (click)="closeConfirmation()"
-                            style="flex-shrink: 0; background: #15803d; color: #fff; border: none;
-                                   border-radius: 6px; padding: 7px 16px; font-size: 13px;
-                                   font-weight: 600; cursor: pointer;">
-                      Close
-                    </button>
-                  </div>
-                }
-
-                <!-- Case Notes -->
-                <div style="background: #fff; border-radius: 10px; padding: 20px 24px;
-                            box-shadow: 0 1px 4px rgba(0,0,0,.07); margin-bottom: 14px;">
-                  <p style="margin: 0 0 16px; font-size: 12px; font-weight: 700;
-                             text-transform: uppercase; letter-spacing: .07em; color: #6b7280;">
-                    Case Notes
-                  </p>
-                  @for (note of notes; track note.id; let last = $last) {
-                    <div [style.padding-bottom]="last ? '0' : '16px'"
-                         [style.margin-bottom]="last ? '0' : '16px'"
-                         [style.border-bottom]="last ? 'none' : '1px solid #f3f4f6'">
-                      <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 5px;">
-                        <span style="font-size: 13px; font-weight: 700; color: #0d1b2a;">
-                          {{ note.author }}
-                        </span>
-                        <span style="font-size: 11px; color: #9ca3af;">{{ note.date }}</span>
-                      </div>
-                      <p style="margin: 0; font-size: 13px; color: #374151; line-height: 1.65;">
-                        {{ note.text }}
-                      </p>
-                    </div>
-                  }
-                </div>
-
-                <!-- Documents -->
-                <div style="background: #fff; border-radius: 10px; padding: 20px 24px;
-                            box-shadow: 0 1px 4px rgba(0,0,0,.07);">
-                  <p style="margin: 0 0 16px; font-size: 12px; font-weight: 700;
-                             text-transform: uppercase; letter-spacing: .07em; color: #6b7280;">
-                    Documents
-                  </p>
-                  @for (doc of docs; track doc.name; let last = $last) {
-                    <div style="display: flex; align-items: center; justify-content: space-between;"
-                         [style.padding-bottom]="last ? '0' : '14px'"
-                         [style.margin-bottom]="last ? '0' : '14px'"
-                         [style.border-bottom]="last ? 'none' : '1px solid #f3f4f6'">
-                      <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 34px; height: 34px; background: #fef2f2; border-radius: 7px;
-                                    display: flex; align-items: center; justify-content: center;
-                                    font-size: 10px; font-weight: 800; color: #dc2626; flex-shrink: 0;">
-                          {{ doc.type }}
-                        </div>
-                        <div>
-                          <p style="margin: 0 0 2px; font-size: 13px; font-weight: 600; color: #0d1b2a;">
-                            {{ doc.name }}
-                          </p>
-                          <p style="margin: 0; font-size: 11px; color: #9ca3af;">
-                            {{ doc.size }} &middot; {{ doc.date }}
-                          </p>
-                        </div>
-                      </div>
-                      <button style="flex-shrink: 0; background: none; border: 1px solid #e5e7eb;
-                                     border-radius: 6px; padding: 5px 14px; font-size: 12px;
-                                     color: #374151; cursor: pointer;">
-                        Download
-                      </button>
-                    </div>
-                  }
-                </div>
-
-              </div>
-              <!-- END DETAIL VIEW -->
-
-            <!-- ── CASE LIST ────────────────────────────────────────────── -->
+            <!-- Case list -->
             } @else {
               <div style="padding: 24px;">
 
@@ -448,9 +213,22 @@ const TH_R = TH + 'text-align:right;';
 
                 } @else {
 
-                  <!-- Cases table -->
+                  <!-- Cases table — clicking a row navigates into disputes-mfe detail -->
                   <div style="background: #fff; border-radius: 10px;
                               box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden;">
+
+                    <div style="padding: 12px 20px 10px; border-bottom: 1px solid #f3f4f6;
+                                display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 11px; font-weight: 700; text-transform: uppercase;
+                                   letter-spacing: .07em; color: #6b7280;">
+                        {{ queueCases().length }} cases
+                      </span>
+                      <span style="font-size: 11px; color: #d1d5db;">·</span>
+                      <span style="font-size: 11px; color: #9ca3af;">
+                        Click a row to open the full dispute detail
+                      </span>
+                    </div>
+
                     <table style="width: 100%; border-collapse: collapse;">
                       <thead>
                         <tr style="background: #f9fafb;">
@@ -465,7 +243,7 @@ const TH_R = TH + 'text-align:right;';
                       </thead>
                       <tbody>
                         @for (d of queueCases(); track d.id; let last = $last) {
-                          <tr (click)="selectCase(d)"
+                          <tr (click)="openCase(d)"
                               style="cursor: pointer;"
                               onmouseover="this.style.background='#f5f8ff'"
                               onmouseout="this.style.background='transparent'">
@@ -521,7 +299,7 @@ const TH_R = TH + 'text-align:right;';
 
                 }
               </div>
-            } <!-- END CASE LIST -->
+            }
 
           </div>
           <!-- END RIGHT PANEL -->
@@ -533,23 +311,19 @@ const TH_R = TH + 'text-align:right;';
 })
 export class QueuesComponent implements OnInit {
 
-  private http = inject(HttpClient);
+  private http   = inject(HttpClient);
+  private router = inject(Router);
 
-  // Expose constants for template bindings
   readonly TH   = TH;
   readonly TH_R = TH_R;
   readonly queues = QUEUES;
-  readonly notes  = NOTES;
-  readonly docs   = DOCS;
 
   // ── State signals ─────────────────────────────────────────────────────────
 
-  readonly disputes            = signal<Dispute[]>([]);
-  readonly loading             = signal(true);
-  readonly error               = signal<string | null>(null);
-  readonly selectedQueueId     = signal<string>('high-priority');
-  readonly selectedCase        = signal<Dispute | null>(null);
-  readonly confirmationMessage = signal<string | null>(null);
+  readonly disputes        = signal<Dispute[]>([]);
+  readonly loading         = signal(true);
+  readonly error           = signal<string | null>(null);
+  readonly selectedQueueId = signal<string>('high-priority');
 
   // ── Derived state ─────────────────────────────────────────────────────────
 
@@ -561,8 +335,7 @@ export class QueuesComponent implements OnInit {
     this.disputes().filter(this.selectedQueue().filter)
   );
 
-  // Queues sorted so empty ones always appear at the bottom.
-  // Within each group (non-empty / empty) original order is preserved.
+  // Empty queues sink to the bottom; original order preserved within each group
   readonly sortedQueues = computed(() => {
     if (this.loading() || this.disputes().length === 0) return QUEUES;
     const data = this.disputes();
@@ -584,43 +357,25 @@ export class QueuesComponent implements OnInit {
     });
   }
 
-  // ── Queue / case navigation ───────────────────────────────────────────────
+  // ── Queue navigation ──────────────────────────────────────────────────────
 
   selectQueue(id: string): void {
     this.selectedQueueId.set(id);
-    this.selectedCase.set(null);
-    this.confirmationMessage.set(null);
   }
 
-  selectCase(d: Dispute): void {
-    this.selectedCase.set(d);
-    this.confirmationMessage.set(null);
-  }
-
-  goBack(): void {
-    this.selectedCase.set(null);
-    this.confirmationMessage.set(null);
-  }
-
-  // ── Case actions ──────────────────────────────────────────────────────────
-
-  acceptCase(): void {
-    const id = this.selectedCase()?.id ?? '';
-    this.confirmationMessage.set(
-      'Case ' + id + ' has been accepted and marked for resolution.'
-    );
-  }
-
-  contestCase(): void {
-    const id = this.selectedCase()?.id ?? '';
-    this.confirmationMessage.set(
-      'Case ' + id + ' has been contested and flagged for further review.'
-    );
-  }
-
-  closeConfirmation(): void {
-    this.confirmationMessage.set(null);
-    this.selectedCase.set(null);
+  /**
+   * Navigate into the disputes-mfe detail view for the selected case.
+   * The wrapper reads these query params and injects them into appContext,
+   * so the MFE auto-opens the case and shows a breadcrumb back button.
+   */
+  openCase(d: Dispute): void {
+    this.router.navigate(['/disputes'], {
+      queryParams: {
+        caseId:      d.id,
+        returnLabel: 'Back to ' + this.selectedQueue().label,
+        returnRoute: '/queues'
+      }
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
